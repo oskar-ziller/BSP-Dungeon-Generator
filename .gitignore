@@ -35,5 +35,9 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
-Logs/AssetImportWorker0-prev.log
+
+
+
+
+# Custom
 *.log
