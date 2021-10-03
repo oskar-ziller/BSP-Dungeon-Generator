@@ -511,13 +511,13 @@ public class DungeonGenerator : MonoBehaviour
 
     public Dungeon Dungeon;
 
-    //private static void ClearConsole()
-    //{
-    //    Assembly assembly = Assembly.GetAssembly(typeof(SceneView));
-    //    System.Type type = assembly.GetType("UnityEditor.LogEntries");
-    //    MethodInfo method = type.GetMethod("Clear");
-    //    method.Invoke(new object(), null);
-    //}
+    private static void ClearConsole()
+    {
+        Assembly assembly = Assembly.GetAssembly(typeof(SceneView));
+        System.Type type = assembly.GetType("UnityEditor.LogEntries");
+        MethodInfo method = type.GetMethod("Clear");
+        method.Invoke(new object(), null);
+    }
 
     public void Create()
     {
@@ -544,7 +544,7 @@ public class DungeonGenerator : MonoBehaviour
     {
         if (clearConsoleOnGenerate)
         {
-            //ClearConsole();
+            ClearConsole();
         }
 
         RectInt startingRect = new RectInt(0, 0, totalSize, totalSize);
