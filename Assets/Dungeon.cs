@@ -34,7 +34,7 @@ public class Dungeon
 		BinaryTree.SplitMaxRatio = SplitMaxRatio;
 		DungeonTree = BinaryTree.SplitIteratively(Iterations, StartingRect);
 		CreateRooms();
-		//CreateTunnels();
+		CreateTunnels();
 	}
 
 	#endregion
@@ -63,18 +63,18 @@ public class Dungeon
 			// Set roomStart after Padding units 
 			// Subtract Padding and TunnelSize from actual room end
 
-			// If we want a Vertical tunnel, we iterate from xMin to xMax
-			if (direction == TunnelDirection.Vertical)
+			switch (direction)
 			{
-				room_start = room.xMin + Padding;
-				room_end = room.xMax - Padding * 2 - TunnelSize;
-			}
-
-			// If we want a Horizontal tunnel, we iterate from yMin to yMax
-			if (direction == TunnelDirection.Horizontal)
-			{
-				room_start = room.yMin;
-				room_end = room.yMax - Padding * 2 - TunnelSize;
+				// If we want a Vertical tunnel, we iterate from xMin to xMax
+				case TunnelDirection.Vertical:
+					room_start = room.xMin + Padding;
+					room_end = room.xMax - Padding - TunnelSize;
+					break;
+				// If we want a Horizontal tunnel, we iterate from yMin to yMax
+				case TunnelDirection.Horizontal:
+					room_start = room.yMin;
+					room_end = room.yMax - Padding - TunnelSize;
+					break;
 			}
 
 			for (var pos = room_start; pos <= room_end; pos++)
@@ -82,14 +82,14 @@ public class Dungeon
 				// For every location, create and save a tunnelStart with zero thickness
 				//Debug.Log($"adding possible {direction} tunnel start at pos: {pos} room: {room}");
 
-				if (direction == TunnelDirection.Vertical)
+				switch (direction)
 				{
-					possible_tunnel_starts.Add(new RectInt(pos, room.yMax, TunnelSize + Padding * 2, 0));
-				}
-
-				if (direction == TunnelDirection.Horizontal)
-				{
-					possible_tunnel_starts.Add(new RectInt(room.xMax, pos, 0, TunnelSize + Padding * 2));
+					case TunnelDirection.Vertical:
+						possible_tunnel_starts.Add(new RectInt(pos, room.yMax, TunnelSize + Padding, 0));
+						break;
+					case TunnelDirection.Horizontal:
+						possible_tunnel_starts.Add(new RectInt(room.xMax, pos, 0, TunnelSize + Padding));
+						break;
 				}
 			}
 		}
@@ -100,30 +100,30 @@ public class Dungeon
 			var tunnel_start = 0;
 			var tunnel_end = 0;
 
-			if (direction == TunnelDirection.Vertical)
+			switch (direction)
 			{
-				tunnel_start = tunnel.xMin;
-				tunnel_end = tunnel.xMax - Padding * 2 - TunnelSize;
-			}
-
-			if (direction == TunnelDirection.Horizontal)
-			{
-				tunnel_start = tunnel.yMin;
-				tunnel_end = tunnel.yMax - Padding * 2 - TunnelSize;
+				case TunnelDirection.Vertical:
+					tunnel_start = tunnel.xMin;
+					tunnel_end = tunnel.xMax - Padding - TunnelSize;
+					break;
+				case TunnelDirection.Horizontal:
+					tunnel_start = tunnel.yMin;
+					tunnel_end = tunnel.yMax - Padding - TunnelSize;
+					break;
 			}
 
 			for (var pos = tunnel_start; pos <= tunnel_end; pos++)
 			{
 				//Debug.Log($"adding possible {direction} tunnel start at tunnel: " + tunnel.ToString());
 
-				if (direction == TunnelDirection.Vertical)
+				switch (direction)
 				{
-					possible_tunnel_starts.Add(new RectInt(pos, tunnel.yMax, TunnelSize + Padding * 2, 0));
-				}
-
-				if (direction == TunnelDirection.Horizontal)
-				{
-					possible_tunnel_starts.Add(new RectInt(tunnel.xMax, pos, 0, TunnelSize + Padding * 2));
+					case TunnelDirection.Vertical:
+						possible_tunnel_starts.Add(new RectInt(pos, tunnel.yMax, TunnelSize + Padding, 0));
+						break;
+					case TunnelDirection.Horizontal:
+						possible_tunnel_starts.Add(new RectInt(tunnel.xMax, pos, 0, TunnelSize + Padding));
+						break;
 				}
 			}
 		}
@@ -140,27 +140,29 @@ public class Dungeon
 				var point_to_check = new Vector2Int();
 				var point_to_check2 = new Vector2Int();
 
-				// Set pointToCheck to starting X of the possible tunnel and Y of the room we are checking
-				// Set pointToCheck2 to the desired width
-				if (direction == TunnelDirection.Vertical)
+				switch (direction)
 				{
-					point_to_check = new Vector2Int(st.x, room.yMin);
-					point_to_check2 = new Vector2Int(st.x + st.width, room.yMin);
-				}
-
-				if (direction == TunnelDirection.Horizontal)
-				{
-					point_to_check = new Vector2Int(room.xMin, st.y);
-					point_to_check2 = new Vector2Int(room.xMin, st.y + st.height);
+					// Set pointToCheck to starting X of the possible tunnel and Y of the room we are checking
+					// Set pointToCheck2 to the desired width
+					case TunnelDirection.Vertical:
+						point_to_check = new Vector2Int(st.x, room.yMin);
+						point_to_check2 = new Vector2Int(st.x + st.width, room.yMin);
+						break;
+					case TunnelDirection.Horizontal:
+						point_to_check = new Vector2Int(room.xMin, st.y);
+						point_to_check2 = new Vector2Int(room.xMin, st.y + st.height);
+						break;
 				}
 
 				// if room contains both points, possibleTunnel fits the room
-				if (room.Contains(point_to_check) && room.Contains(point_to_check2))
+				if (!room.Contains(point_to_check) || !room.Contains(point_to_check2))
 				{
-					// resize the tunnel so it touches both rooms
-					st.SetMinMax(st.min, point_to_check2);
-					tunnels.Add(st);
+					continue;
 				}
+
+				// resize the tunnel so it touches both rooms
+				st.SetMinMax(st.min, point_to_check2);
+				tunnels.Add(st);
 			}
 		}
 
@@ -172,23 +174,25 @@ public class Dungeon
 				var point_to_check = new Vector2Int();
 				var point_to_check2 = new Vector2Int();
 
-				if (direction == TunnelDirection.Vertical)
+				switch (direction)
 				{
-					point_to_check = new Vector2Int(st.x, tunnel.yMin);
-					point_to_check2 = new Vector2Int(st.x + st.width, tunnel.yMin);
+					case TunnelDirection.Vertical:
+						point_to_check = new Vector2Int(st.x, tunnel.yMin);
+						point_to_check2 = new Vector2Int(st.x + st.width, tunnel.yMin);
+						break;
+					case TunnelDirection.Horizontal:
+						point_to_check = new Vector2Int(tunnel.xMin, st.y);
+						point_to_check2 = new Vector2Int(tunnel.xMin, st.y + st.height);
+						break;
 				}
 
-				if (direction == TunnelDirection.Horizontal)
+				if (!tunnel.Contains(point_to_check) || !tunnel.Contains(point_to_check2))
 				{
-					point_to_check = new Vector2Int(tunnel.xMin, st.y);
-					point_to_check2 = new Vector2Int(tunnel.xMin, st.y + st.height);
+					continue;
 				}
 
-				if (tunnel.Contains(point_to_check) && tunnel.Contains(point_to_check2))
-				{
-					st.SetMinMax(st.min, point_to_check2);
-					tunnels.Add(st);
-				}
+				st.SetMinMax(st.min, point_to_check2);
+				tunnels.Add(st);
 			}
 		}
 
@@ -225,24 +229,28 @@ public class Dungeon
 		// finally, remove the Padding from the tunnels
 		for (var i = 0; i < refined_tunnels.Count; i++)
 		{
-			var r = refined_tunnels[i];
+			var rect = refined_tunnels[i];
 
-			if (direction == TunnelDirection.Vertical)
+			switch (direction)
 			{
-				r.x += Padding;
-				r.width -= Padding * 2;
+				case TunnelDirection.Vertical:
+					rect.x += Padding;
+					rect.width -= Padding;
+					break;
+				case TunnelDirection.Horizontal:
+					rect.y += Padding;
+					rect.height -= Padding;
+					break;
 			}
 
-			if (direction == TunnelDirection.Horizontal)
-			{
-				r.y += Padding;
-				r.height -= Padding * 2;
-			}
-
-			final.Add(r);
+			final.Add(rect);
 		}
 
-		node.Tunnel = final[Random.Range(0, refined_tunnels.Count - 1)];
+		if (final.Count > 0)
+		{
+			node.Tunnel = final[Random.Range(0, refined_tunnels.Count - 1)];
+		}
+
 	}
 
 	/// Create a room in every leaf that fits its container.

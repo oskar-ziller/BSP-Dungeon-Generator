@@ -13,7 +13,8 @@ public class DungeonSpawner : MonoBehaviour
 	[Range(0.1f, 5f)]
 	public float FloorScale = 1;
 
-	[FormerlySerializedAs("tilePrefab")] public GameObject TilePrefab;
+	public GameObject RoomTilePrefab;
+	public GameObject TunnelTilePrefab;
 
 	#endregion
 
@@ -59,19 +60,20 @@ public class DungeonSpawner : MonoBehaviour
 		walls.Clear();
 		RemoveExisting();
 
-		//dungeonGenerator.Create();
-		CreateFloors();
+		var dungeon_holder = new GameObject(HOLDER_NAME).transform;
+		dungeon_holder.parent = transform;
+		
+		dungeonGenerator.Create();
+		SpawnFloors(dungeon_holder);
+		SpawnTunnels(dungeon_holder);
 	}
 
 	#endregion
 
 	#region Private Methods
 
-	private void CreateFloors()
+	private void SpawnFloors(Transform dungeon_holder)
 	{
-		var dungeon_holder = new GameObject(HOLDER_NAME).transform;
-		dungeon_holder.parent = transform;
-
 		var rooms = dungeonGenerator.Dungeon.DungeonTree.GetAllRooms();
 
 		var room_count = 0;
@@ -86,11 +88,15 @@ public class DungeonSpawner : MonoBehaviour
 			{
 				for (var y = room.y; y < room.yMax; y++)
 				{
-					SpawnFloorTileAt(x, y, room_holder);
+					SpawnRoomTileAt(x, y, room_holder);
 				}
 			}
 		}
 
+	}
+
+	private void SpawnTunnels(Transform dungeon_holder)
+	{
 		var tunnels = dungeonGenerator.Dungeon.DungeonTree.GetAllTunnels();
 
 		var tunnel_count = 0;
@@ -105,7 +111,7 @@ public class DungeonSpawner : MonoBehaviour
 			{
 				for (var y = tunnel.y; y < tunnel.yMax; y++)
 				{
-					SpawnFloorTileAt(x, y, tunnel_holder);
+					SpawnTunnelTileAt(x, y, tunnel_holder);
 				}
 			}
 		}
@@ -131,14 +137,23 @@ public class DungeonSpawner : MonoBehaviour
 		}
 	}
 
-	private void SpawnFloorTileAt(int x, int y, Transform parent)
+	private void SpawnRoomTileAt(int x, int y, Transform parent)
 	{
-		var new_tile = Instantiate(TilePrefab);
-		new_tile.transform.position = GetWorldPosition(x, y);
+		var new_tile = Instantiate(RoomTilePrefab);
+		SetPosScaleAndParentOfATile(x, y, parent, new_tile);
+	}
+	
+	private void SpawnTunnelTileAt(int x, int y, Transform parent)
+	{
+		var new_tile = Instantiate(TunnelTilePrefab);
+		SetPosScaleAndParentOfATile(x, y, parent, new_tile);
+	}
+
+	private void SetPosScaleAndParentOfATile(int x, int y, Transform parent, GameObject new_tile)
+	{
 		new_tile.transform.parent = parent;
-
+		new_tile.transform.position = GetWorldPosition(x, y);
 		new_tile.transform.localScale = FloorScale * Vector3.one;
-
 		floors.Add(new TransformObj(new_tile.transform, x, y));
 	}
 
