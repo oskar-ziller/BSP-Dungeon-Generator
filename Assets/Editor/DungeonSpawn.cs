@@ -1,28 +1,32 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+#region
+
 using UnityEditor;
+using UnityEngine;
+
+#endregion
 
 [CustomEditor(typeof(DungeonSpawner))]
 public class DungeonSpawn : Editor
 {
-    public override void OnInspectorGUI()
-    {
-        DungeonSpawner dungeonSpawner = target as DungeonSpawner;
+	#region Public Methods
 
-        if (DrawDefaultInspector())
-        {
-            //dungeonSpawner.Create();
-        }
+	public override void OnInspectorGUI()
+	{
+		var dungeon_spawner = target as DungeonSpawner;
 
-        if (GUILayout.Button("Spawn"))
-        {
-            dungeonSpawner.Spawn();
-            //map.GenerateMap();
-        }
+		if (DrawDefaultInspector())
+		{
+			//dungeonSpawner.Create();
+		}
 
-        base.OnHeaderGUI();
+		if (GUILayout.Button("Spawn"))
+		{
+			dungeon_spawner.Spawn();
+			//map.GenerateMap();
+		}
 
-    }
+		base.OnHeaderGUI();
+	}
 
+	#endregion
 }

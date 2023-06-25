@@ -1,27 +1,27 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+#region
+
 using UnityEditor;
+using UnityEngine;
+
+#endregion
 
 [CustomEditor(typeof(DungeonGenerator))]
-public class DuneonGen : Editor
+public class DunegonGen : Editor
 {
-    public override void OnInspectorGUI()
-    {
-        DungeonGenerator dungeonGenerator = target as DungeonGenerator;
+	#region Public Methods
 
-        if (DrawDefaultInspector())
-        {
-            dungeonGenerator.CreateGUI();
-            //map.GenerateMap();
-        }
+	public override void OnInspectorGUI()
+	{
+		base.OnInspectorGUI();
+		
+		var dungeon_generator = target as DungeonGenerator;
 
-        if (GUILayout.Button("Generate"))
-        {
-            dungeonGenerator.CreateGUI();
-            //map.GenerateMap();
-        }
+		if (GUILayout.Button("Generate"))
+		{
+			dungeon_generator.Create();
+			//map.GenerateMap();
+		}
+	}
 
-        base.OnHeaderGUI();
-    }
+	#endregion
 }

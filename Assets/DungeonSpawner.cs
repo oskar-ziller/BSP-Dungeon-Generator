@@ -1,150 +1,146 @@
-using System.Collections;
+#region
+
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 
-
-
-internal class TransformObj
-{
-    public Transform obj;
-    public int x, y;
-
-    public TransformObj(Transform o, int xpos, int ypos)
-    {
-        obj = o;
-        x = xpos;
-        y = ypos;
-    }
-}
-
+#endregion
 
 public class DungeonSpawner : MonoBehaviour
 {
-    const string holderName = "Dungeon";
-    const int cellSize = 10;
+	#region Serialized Fields
 
-    [Range(0.1f, 5f)]
-    public float FloorScale = 1;
+	[Range(0.1f, 5f)]
+	public float FloorScale = 1;
 
-    public Transform tilePrefab;
+	[FormerlySerializedAs("tilePrefab")] public GameObject TilePrefab;
 
-    List<TransformObj> floors = new List<TransformObj>();
-    List<TransformObj> walls = new List<TransformObj>();
+	#endregion
 
-    DungeonGenerator dungeonGenerator;
+	#region Constants and Fields
 
-    private void Awake()
-    {
-    }
+	private const string HOLDER_NAME = "Dungeon";
 
+	private DungeonGenerator dungeonGenerator;
 
-    public void Spawn()
-    {
-        if (dungeonGenerator == null)
-        {
-            dungeonGenerator = GetComponent<DungeonGenerator>();
-        }
+	private readonly List<TransformObj> floors = new();
+	private readonly List<TransformObj> walls = new();
 
-        floors.Clear();
-        walls.Clear();
-        RemoveExisting();
+	#endregion
 
-        dungeonGenerator.Create();
-        CreateFloors();
-    }
+	#region Unity Methods
 
+	private void Awake()
+	{
+	}
 
-    private void RemoveExisting()
-    {
-        if (GameObject.Find(holderName))
-        {
-            //Destroy(GameObject.Find(holderName).gameObject);
-            DestroyImmediate(GameObject.Find(holderName).gameObject);
-        }
-    }
+	// Start is called before the first frame update
+	private void Start()
+	{
+	}
 
-    private void CreateFloors()
-    {
-        Transform dungeonHolder = new GameObject(holderName).transform;
-        dungeonHolder.parent = transform;
+	// Update is called once per frame
+	private void Update()
+	{
+	}
 
-        List<RectInt> rooms = dungeonGenerator.Dungeon.DungeonTree.GetAllRooms();
+	#endregion
 
-        int roomCount = 0;
+	#region Public Methods
 
-        foreach (RectInt room in rooms)
-        {
-            Transform roomHolder = new GameObject("Room " + roomCount).transform;
-            roomHolder.parent = dungeonHolder;
-            roomCount++;
+	public void Spawn()
+	{
+		if (dungeonGenerator == null)
+		{
+			dungeonGenerator = GetComponent<DungeonGenerator>();
+		}
 
-            for (int x = room.x; x < room.xMax; x++)
-            {
-                for (int y = room.y; y < room.yMax; y++)
-                {
-                    SpawnFloorTileAt(x, y, roomHolder);
-                }
-            }
-        }
+		floors.Clear();
+		walls.Clear();
+		RemoveExisting();
 
+		//dungeonGenerator.Create();
+		CreateFloors();
+	}
 
+	#endregion
 
+	#region Private Methods
 
-        List<RectInt> tunnels = dungeonGenerator.Dungeon.DungeonTree.GetAllTunnels();
+	private void CreateFloors()
+	{
+		var dungeon_holder = new GameObject(HOLDER_NAME).transform;
+		dungeon_holder.parent = transform;
 
-        int tunnelCount = 0;
+		var rooms = dungeonGenerator.Dungeon.DungeonTree.GetAllRooms();
 
-        foreach (RectInt tunnel in tunnels)
-        {
-            Transform tunnelHolder = new GameObject("Tunnel " + tunnelCount).transform;
-            tunnelHolder.parent = dungeonHolder;
-            tunnelCount++;
+		var room_count = 0;
 
-            for (int x = tunnel.x; x < tunnel.xMax; x++)
-            {
-                for (int y = tunnel.y; y < tunnel.yMax; y++)
-                {
-                    SpawnFloorTileAt(x, y, tunnelHolder);
-                }
-            }
-        }
+		foreach (var room in rooms)
+		{
+			var room_holder = new GameObject("Room " + room_count).transform;
+			room_holder.parent = dungeon_holder;
+			room_count++;
 
-    }
+			for (var x = room.x; x < room.xMax; x++)
+			{
+				for (var y = room.y; y < room.yMax; y++)
+				{
+					SpawnFloorTileAt(x, y, room_holder);
+				}
+			}
+		}
 
-    private void SpawnFloorTileAt(int x, int y, Transform parent)
-    {
-        Transform newTile = Instantiate(tilePrefab, GetWorldPosition(x, y), Quaternion.identity);
-        newTile.parent = parent;
+		var tunnels = dungeonGenerator.Dungeon.DungeonTree.GetAllTunnels();
 
-        newTile.localScale = new Vector3(FloorScale, FloorScale, FloorScale);
-        //newTile.GetChild(0).gameObject.SetActive(true); // enable floor prefab
+		var tunnel_count = 0;
 
-        floors.Add(new TransformObj(newTile, x, y));
-    }
+		foreach (var tunnel in tunnels)
+		{
+			var tunnel_holder = new GameObject("Tunnel " + tunnel_count).transform;
+			tunnel_holder.parent = dungeon_holder;
+			tunnel_count++;
 
+			for (var x = tunnel.x; x < tunnel.xMax; x++)
+			{
+				for (var y = tunnel.y; y < tunnel.yMax; y++)
+				{
+					SpawnFloorTileAt(x, y, tunnel_holder);
+				}
+			}
+		}
+	}
 
-    Vector3 GetWorldPosition(int x, int y)
-    {
-        return cellSize * FloorScale * new Vector3(x, 0, y);
-    }
+	private Vector3 GetScreenPosition(Vector3 v)
+	{
+		var new_vec = v / FloorScale;
+		return new Vector3(new_vec.x, new_vec.z, 0);
+	}
 
-    Vector3 GetScreenPosition(Vector3 v)
-    {
-        var newVec = v / cellSize / FloorScale;
-        return new Vector3(newVec.x, newVec.z, 0);
-    }
+	private Vector3 GetWorldPosition(int x, int y)
+	{
+		return FloorScale * new Vector3(x + FloorScale * .5f, 0, y + FloorScale * .5f);
+	}
 
+	private void RemoveExisting()
+	{
+		if (GameObject.Find(HOLDER_NAME))
+		{
+			//Destroy(GameObject.Find(holderName).gameObject);
+			DestroyImmediate(GameObject.Find(HOLDER_NAME).gameObject);
+		}
+	}
 
-    // Start is called before the first frame update
-    void Start()
-    {
+	private void SpawnFloorTileAt(int x, int y, Transform parent)
+	{
+		var new_tile = Instantiate(TilePrefab);
+		new_tile.transform.position = GetWorldPosition(x, y);
+		new_tile.transform.parent = parent;
 
-    }
+		new_tile.transform.localScale = FloorScale * Vector3.one;
 
-    // Update is called once per frame
-    void Update()
-    {
+		floors.Add(new TransformObj(new_tile.transform, x, y));
+	}
 
-    }
+	#endregion
 }
