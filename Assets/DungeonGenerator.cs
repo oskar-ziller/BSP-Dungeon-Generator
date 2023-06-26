@@ -3,6 +3,7 @@
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 #endregion
 
@@ -25,16 +26,18 @@ public class DungeonGenerator : MonoBehaviour
 	[Header("Dungeon Settings")]
 	[SerializeField] [Range(1, 400)] private int totalSize = 12;
 	[SerializeField] [Range(1, 10)] private int iterations = 1;
-	[SerializeField] [Range(1, 10)] private int tunnelSize = 3;
+	[FormerlySerializedAs("tunnelSize")] [SerializeField] [Range(1, 10)] private int tunnelWidth = 3;
 	[SerializeField] [Range(0.1f, 1f)] private float roomMinRatio = 0.5f;
 	[SerializeField] [Range(0.1f, 1f)] private float roomMaxRatio = 1f;
 	[SerializeField] [Range(0, 5)] private int padding = 1;
-	
+
 	[SerializeField] [Range(0, 1)] private float splitMinRatio = 0.4f;
 	[SerializeField] [Range(0, 1)] private float splitMaxRatio = 0.6f;
 
 	[Header("Other")]
 	[SerializeField] private bool drawDebugLines;
+	[SerializeField] private bool drawRooms;
+	[SerializeField] private bool drawTunnels;
 	[SerializeField] private bool clearConsoleOnGenerate;
 
 	#endregion
@@ -65,12 +68,12 @@ public class DungeonGenerator : MonoBehaviour
 		{
 			ClearConsole();
 		}
-		
+
 		var starting_rect = new RectInt(0, 0, totalSize, totalSize);
 
 		var my_dungeon = new Dungeon
 		{
-			TunnelSize = tunnelSize,
+			TunnelSize = tunnelWidth,
 			TotalSize = totalSize,
 			RoomMinRatio = roomMinRatio,
 			RoomMaxRatio = roomMaxRatio,
@@ -85,7 +88,7 @@ public class DungeonGenerator : MonoBehaviour
 
 		Dungeon = my_dungeon;
 	}
-	
+
 	#endregion
 
 	#region Private Methods
@@ -95,7 +98,73 @@ public class DungeonGenerator : MonoBehaviour
 		var assembly = Assembly.GetAssembly(typeof(SceneView));
 		var type = assembly.GetType("UnityEditor.LogEntries");
 		var method = type.GetMethod("Clear");
-		method.Invoke(new object(), null);
+		method?.Invoke(new object(), null);
+	}
+
+	private static void DrawContainer(BinaryTree node)
+	{
+		// Container
+		Gizmos.color = Color.green;
+
+		// top      
+		Gizmos.DrawLine(new Vector3(node.RootNode.x, 0, node.RootNode.y),
+			new Vector3Int(node.RootNode.xMax, 0, node.RootNode.y));
+
+		// right
+		Gizmos.DrawLine(new Vector3(node.RootNode.xMax, 0, node.RootNode.y),
+			new Vector3Int(node.RootNode.xMax, 0, node.RootNode.yMax));
+
+		// bottom
+		Gizmos.DrawLine(new Vector3(node.RootNode.x, 0, node.RootNode.yMax),
+			new Vector3Int(node.RootNode.xMax, 0, node.RootNode.yMax));
+
+		// left
+		Gizmos.DrawLine(new Vector3(node.RootNode.x, 0, node.RootNode.y),
+			new Vector3Int(node.RootNode.x, 0, node.RootNode.yMax));
+	}
+
+	private static void DrawRoom(BinaryTree node)
+	{
+		// Room
+		Gizmos.color = Color.red;
+
+		// top      
+		Gizmos.DrawLine(new Vector3(node.DungeonRoom.x, 0, node.DungeonRoom.y),
+			new Vector3Int(node.DungeonRoom.xMax, 0, node.DungeonRoom.y));
+
+		// right
+		Gizmos.DrawLine(new Vector3(node.DungeonRoom.xMax, 0, node.DungeonRoom.y),
+			new Vector3Int(node.DungeonRoom.xMax, 0, node.DungeonRoom.yMax));
+
+		// bottom
+		Gizmos.DrawLine(new Vector3(node.DungeonRoom.x, 0, node.DungeonRoom.yMax),
+			new Vector3Int(node.DungeonRoom.xMax, 0, node.DungeonRoom.yMax));
+
+		// left
+		Gizmos.DrawLine(new Vector3(node.DungeonRoom.x, 0, node.DungeonRoom.y),
+			new Vector3Int(node.DungeonRoom.x, 0, node.DungeonRoom.yMax));
+	}
+
+	private static void DrawTunnel(BinaryTree node)
+	{
+		// Tunnel
+		Gizmos.color = Color.yellow;
+
+		// top      
+		Gizmos.DrawLine(new Vector3(node.Tunnel.x, 0, node.Tunnel.y),
+			new Vector3Int(node.Tunnel.xMax, 0, node.Tunnel.y));
+
+		// right
+		Gizmos.DrawLine(new Vector3(node.Tunnel.xMax, 0, node.Tunnel.y),
+			new Vector3Int(node.Tunnel.xMax, 0, node.Tunnel.yMax));
+
+		// bottom
+		Gizmos.DrawLine(new Vector3(node.Tunnel.x, 0, node.Tunnel.yMax),
+			new Vector3Int(node.Tunnel.xMax, 0, node.Tunnel.yMax));
+
+		// left
+		Gizmos.DrawLine(new Vector3(node.Tunnel.x, 0, node.Tunnel.y),
+			new Vector3Int(node.Tunnel.x, 0, node.Tunnel.yMax));
 	}
 
 	private void DebugDraw()
@@ -112,46 +181,17 @@ public class DungeonGenerator : MonoBehaviour
 	{
 		while (true)
 		{
-			// Container
-			Gizmos.color = Color.green;
+			DrawContainer(node);
 
-			// top      
-			Gizmos.DrawLine(new Vector3(node.Container.x, 0, node.Container.y), new Vector3Int(node.Container.xMax, 0, node.Container.y));
+			if (drawRooms)
+			{
+				DrawRoom(node);
+			}
 
-			// right
-			Gizmos.DrawLine(new Vector3(node.Container.xMax, 0, node.Container.y), new Vector3Int(node.Container.xMax, 0, node.Container.yMax));
-
-			// bottom
-			Gizmos.DrawLine(new Vector3(node.Container.x, 0, node.Container.yMax), new Vector3Int(node.Container.xMax, 0, node.Container.yMax));
-
-			// left
-			Gizmos.DrawLine(new Vector3(node.Container.x, 0, node.Container.y), new Vector3Int(node.Container.x, 0, node.Container.yMax));
-
-			// Room
-			Gizmos.color = Color.red;
-			// top      
-			Gizmos.DrawLine(new Vector3(node.Room.x, 0, node.Room.y), new Vector3Int(node.Room.xMax, 0, node.Room.y));
-			// right
-			Gizmos.DrawLine(new Vector3(node.Room.xMax, 0, node.Room.y), new Vector3Int(node.Room.xMax, 0, node.Room.yMax));
-			// bottom
-			Gizmos.DrawLine(new Vector3(node.Room.x, 0, node.Room.yMax), new Vector3Int(node.Room.xMax, 0, node.Room.yMax));
-			// left
-			Gizmos.DrawLine(new Vector3(node.Room.x, 0, node.Room.y), new Vector3Int(node.Room.x, 0, node.Room.yMax));
-
-			// Tunnel
-			Gizmos.color = Color.blue;
-
-			// top      
-			Gizmos.DrawLine(new Vector3(node.Tunnel.x, 0, node.Tunnel.y), new Vector3Int(node.Tunnel.xMax, 0, node.Tunnel.y));
-
-			// right
-			Gizmos.DrawLine(new Vector3(node.Tunnel.xMax, 0, node.Tunnel.y), new Vector3Int(node.Tunnel.xMax, 0, node.Tunnel.yMax));
-
-			// bottom
-			Gizmos.DrawLine(new Vector3(node.Tunnel.x, 0, node.Tunnel.yMax), new Vector3Int(node.Tunnel.xMax, 0, node.Tunnel.yMax));
-
-			// left
-			Gizmos.DrawLine(new Vector3(node.Tunnel.x, 0, node.Tunnel.y), new Vector3Int(node.Tunnel.x, 0, node.Tunnel.yMax));
+			if (drawTunnels)
+			{
+				DrawTunnel(node);
+			}
 
 			// children
 			if (node.LeftNode != null)

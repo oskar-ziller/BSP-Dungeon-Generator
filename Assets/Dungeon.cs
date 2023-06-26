@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
+﻿#region
+
+using System.Collections.Generic;
 using UnityEngine;
+
+#endregion
 
 public class Dungeon
 {
@@ -15,8 +19,8 @@ public class Dungeon
 	public int Padding { get; set; }
 	public float RoomMaxRatio { get; set; }
 	public float RoomMinRatio { get; set; }
-	public float SplitMinRatio { get; set; }
 	public float SplitMaxRatio { get; set; }
+	public float SplitMinRatio { get; set; }
 	public RectInt StartingRect { get; set; }
 	public int TotalSize { get; set; }
 	public int TunnelSize { get; set; }
@@ -32,7 +36,7 @@ public class Dungeon
 	{
 		BinaryTree.SplitMinRatio = SplitMinRatio;
 		BinaryTree.SplitMaxRatio = SplitMaxRatio;
-		DungeonTree = BinaryTree.SplitIteratively(Iterations, StartingRect);
+		DungeonTree = BinaryTree.SplitRecursively(Iterations, StartingRect);
 		CreateRooms();
 		CreateTunnels();
 	}
@@ -205,7 +209,7 @@ public class Dungeon
 
 			foreach (var c in DungeonTree.GetAllChildren())
 			{
-				if (c.Room.Overlaps(t))
+				if (c.DungeonRoom.Overlaps(t))
 				{
 					collision = true;
 					break;
@@ -250,22 +254,25 @@ public class Dungeon
 		{
 			node.Tunnel = final[Random.Range(0, refined_tunnels.Count - 1)];
 		}
-
 	}
 
 	/// Create a room in every leaf that fits its container.
 	private void CreateRooms()
 	{
-		foreach (var ch in DungeonTree.GetAllLeafs())
+		foreach (var container in DungeonTree.GetAllLeafs())
 		{
-			var c = ch.Container;
-			var random_w = Mathf.Max(Mathf.RoundToInt(Random.Range(c.width * RoomMinRatio, c.width * RoomMaxRatio)), 1);
-			var random_h = Mathf.Max(Mathf.RoundToInt(Random.Range(c.height * RoomMinRatio, c.height * RoomMaxRatio)), 1);
+			var root = container.RootNode;
+			
+			// random size for the room
+			var random_w = Mathf.Max(Mathf.RoundToInt(Random.Range(root.width * RoomMinRatio, root.width * RoomMaxRatio)), 1);
+			var random_h = Mathf.Max(Mathf.RoundToInt(Random.Range(root.height * RoomMinRatio, root.height * RoomMaxRatio)),
+				1);
 
-			var random_x = Random.Range(0, c.width - random_w);
-			var random_y = Random.Range(0, c.height - random_h);
+			// random position for the room
+			var random_x = Random.Range(0, root.width - random_w);
+			var random_y = Random.Range(0, root.height - random_h);
 
-			ch.Room = new RectInt(c.x + random_x, c.y + random_y, random_w, random_h);
+			container.DungeonRoom = new RectInt(root.x + random_x, root.y + random_y, random_w, random_h);
 		}
 	}
 

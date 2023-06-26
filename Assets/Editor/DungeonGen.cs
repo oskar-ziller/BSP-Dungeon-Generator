@@ -13,7 +13,7 @@ public class DunegonGen : Editor
 	public override void OnInspectorGUI()
 	{
 		base.OnInspectorGUI();
-		
+
 		var dungeon_generator = target as DungeonGenerator;
 
 		if (GUILayout.Button("Generate"))

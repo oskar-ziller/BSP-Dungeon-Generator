@@ -9,23 +9,23 @@ public class BinaryTree
 {
 	#region Constants and Fields
 
-	public RectInt Container;
+	public static float SplitMinRatio, SplitMaxRatio;
+	public RectInt DungeonRoom;
 	public BinaryTree LeftNode;
 	public BinaryTree Parent;
 	public BinaryTree RightNode;
-	public RectInt Room;
+
+	public RectInt RootNode;
 	public SplitDirection SplitDir;
 	public RectInt Tunnel;
 
-	public static float SplitMinRatio, SplitMaxRatio;
-	
 	#endregion
 
 	#region Constructors and Destructors
 
 	public BinaryTree(RectInt rect)
 	{
-		Container = rect;
+		RootNode = rect;
 	}
 
 	#endregion
@@ -33,15 +33,16 @@ public class BinaryTree
 	#region Public Methods
 
 	/// <summary>
-	///     Splits a tree into two parts iteratively. Assigns LeftNode and RightNode to split containers.
+	///     Iteratively splits a tree into two parts and assigns the LeftNode and RightNode to the
+	///     respective split containers.
 	/// </summary>
 	/// <param name="iterations">How many iterations to split</param>
-	/// <param name="container">The container to do the split operations on</param>
+	/// <param name="root_node">The container to do the split operations on</param>
 	/// <param name="parent">Parent node (null for root)</param>
 	/// <returns></returns>
-	internal static BinaryTree SplitIteratively(int iterations, RectInt container, BinaryTree parent = null)
+	internal static BinaryTree SplitRecursively(int iterations, RectInt root_node, BinaryTree parent = null)
 	{
-		var node = new BinaryTree(container)
+		var node = new BinaryTree(root_node)
 		{
 			Parent = parent
 		};
@@ -52,8 +53,8 @@ public class BinaryTree
 		}
 
 		node.Split();
-		node.LeftNode = SplitIteratively(iterations - 1, node.LeftNode.Container, node);
-		node.RightNode = SplitIteratively(iterations - 1, node.RightNode.Container, node);
+		node.LeftNode = SplitRecursively(iterations - 1, node.LeftNode.RootNode, node);
+		node.RightNode = SplitRecursively(iterations - 1, node.RightNode.RootNode, node);
 
 		return node;
 	}
@@ -100,9 +101,9 @@ public class BinaryTree
 
 		foreach (var c in children)
 		{
-			if (!c.Room.Equals(new RectInt()))
+			if (!c.DungeonRoom.Equals(new RectInt()))
 			{
-				to_return.Add(c.Room);
+				to_return.Add(c.DungeonRoom);
 			}
 		}
 
@@ -165,9 +166,9 @@ public class BinaryTree
 
 	private RectInt[] SplitContainer()
 	{
-		var c = Container;
+		var c = RootNode;
 
-		RectInt c1, c2;
+		RectInt left_node, right_node;
 
 		var vertical = c.width > c.height;
 
@@ -175,22 +176,24 @@ public class BinaryTree
 		{
 			SplitDir = SplitDirection.Vertical;
 			var w = Mathf.RoundToInt(c.width * Random.Range(SplitMinRatio, SplitMaxRatio));
-			
-			c1 = new RectInt(c.x, c.y,w, c.height);
-			c2 = new RectInt(c.x + c1.width, c.y, c.width - c1.width, c.height);
+
+			left_node = new RectInt(c.x, c.y, w, c.height);
+
+			right_node = new RectInt(c.x + left_node.width, c.y, c.width - left_node.width, c.height);
 		}
 		else
 		{
 			SplitDir = SplitDirection.Horizontal;
 			var h = Mathf.RoundToInt(c.height * Random.Range(SplitMinRatio, SplitMaxRatio));
-			
-			c1 = new RectInt(c.x, c.y, c.width, h);
-			c2 = new RectInt(c.x, c.y + c1.height, c.width, c.height - c1.height);
+
+			left_node = new RectInt(c.x, c.y, c.width, h);
+
+			right_node = new RectInt(c.x, c.y + left_node.height, c.width, c.height - left_node.height);
 		}
 
 		return new[]
 		{
-			c1, c2
+			left_node, right_node
 		};
 	}
 

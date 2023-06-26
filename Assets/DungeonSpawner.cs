@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 #endregion
 
@@ -22,10 +21,10 @@ public class DungeonSpawner : MonoBehaviour
 
 	private const string HOLDER_NAME = "Dungeon";
 
-	private DungeonGenerator dungeonGenerator;
-
 	private readonly List<TransformObj> floors = new();
 	private readonly List<TransformObj> walls = new();
+
+	private DungeonGenerator dungeonGenerator;
 
 	#endregion
 
@@ -62,7 +61,7 @@ public class DungeonSpawner : MonoBehaviour
 
 		var dungeon_holder = new GameObject(HOLDER_NAME).transform;
 		dungeon_holder.parent = transform;
-		
+
 		dungeonGenerator.Create();
 		SpawnFloors(dungeon_holder);
 		SpawnTunnels(dungeon_holder);
@@ -71,6 +70,34 @@ public class DungeonSpawner : MonoBehaviour
 	#endregion
 
 	#region Private Methods
+
+	private Vector3 GetScreenPosition(Vector3 v)
+	{
+		var new_vec = v / FloorScale;
+		return new Vector3(new_vec.x, new_vec.z, 0);
+	}
+
+	private Vector3 GetWorldPosition(int x, int y)
+	{
+		return FloorScale * new Vector3(x + FloorScale * .5f, 0, y + FloorScale * .5f);
+	}
+
+	private void RemoveExisting()
+	{
+		if (GameObject.Find(HOLDER_NAME))
+		{
+			//Destroy(GameObject.Find(holderName).gameObject);
+			DestroyImmediate(GameObject.Find(HOLDER_NAME).gameObject);
+		}
+	}
+
+	private void SetPosScaleAndParentOfATile(int x, int y, Transform parent, GameObject new_tile)
+	{
+		new_tile.transform.parent = parent;
+		new_tile.transform.position = GetWorldPosition(x, y);
+		new_tile.transform.localScale = FloorScale * Vector3.one;
+		floors.Add(new TransformObj(new_tile.transform, x, y));
+	}
 
 	private void SpawnFloors(Transform dungeon_holder)
 	{
@@ -92,7 +119,12 @@ public class DungeonSpawner : MonoBehaviour
 				}
 			}
 		}
+	}
 
+	private void SpawnRoomTileAt(int x, int y, Transform parent)
+	{
+		var new_tile = Instantiate(RoomTilePrefab);
+		SetPosScaleAndParentOfATile(x, y, parent, new_tile);
 	}
 
 	private void SpawnTunnels(Transform dungeon_holder)
@@ -117,44 +149,10 @@ public class DungeonSpawner : MonoBehaviour
 		}
 	}
 
-	private Vector3 GetScreenPosition(Vector3 v)
-	{
-		var new_vec = v / FloorScale;
-		return new Vector3(new_vec.x, new_vec.z, 0);
-	}
-
-	private Vector3 GetWorldPosition(int x, int y)
-	{
-		return FloorScale * new Vector3(x + FloorScale * .5f, 0, y + FloorScale * .5f);
-	}
-
-	private void RemoveExisting()
-	{
-		if (GameObject.Find(HOLDER_NAME))
-		{
-			//Destroy(GameObject.Find(holderName).gameObject);
-			DestroyImmediate(GameObject.Find(HOLDER_NAME).gameObject);
-		}
-	}
-
-	private void SpawnRoomTileAt(int x, int y, Transform parent)
-	{
-		var new_tile = Instantiate(RoomTilePrefab);
-		SetPosScaleAndParentOfATile(x, y, parent, new_tile);
-	}
-	
 	private void SpawnTunnelTileAt(int x, int y, Transform parent)
 	{
 		var new_tile = Instantiate(TunnelTilePrefab);
 		SetPosScaleAndParentOfATile(x, y, parent, new_tile);
-	}
-
-	private void SetPosScaleAndParentOfATile(int x, int y, Transform parent, GameObject new_tile)
-	{
-		new_tile.transform.parent = parent;
-		new_tile.transform.position = GetWorldPosition(x, y);
-		new_tile.transform.localScale = FloorScale * Vector3.one;
-		floors.Add(new TransformObj(new_tile.transform, x, y));
 	}
 
 	#endregion
