@@ -63,31 +63,38 @@ public class DungeonGenerator : MonoBehaviour
 	#region Public Methods
 
 	public void Create()
-	{
-		if (clearConsoleOnGenerate)
-		{
-			ClearConsole();
-		}
-
-		var starting_rect = new RectInt(0, 0, totalSize, totalSize);
-
-		var my_dungeon = new Dungeon
-		{
-			TunnelSize = tunnelWidth,
-			TotalSize = totalSize,
-			RoomMinRatio = roomMinRatio,
-			RoomMaxRatio = roomMaxRatio,
-			SplitMinRatio = splitMinRatio,
-			SplitMaxRatio = splitMaxRatio,
-			StartingRect = starting_rect,
-			Iterations = iterations,
-			Padding = padding
-		};
-
-		my_dungeon.Generate();
-
-		Dungeon = my_dungeon;
-	}
+     {
+         ClearConsoleIfNeeded();
+         var my_dungeon = CreateDungeon();
+         my_dungeon.Generate();
+         Dungeon = my_dungeon;
+     }
+     
+     private void ClearConsoleIfNeeded()
+     {
+         if (clearConsoleOnGenerate)
+         {
+             ClearConsole();
+         }
+     }
+     
+     private Dungeon CreateDungeon()
+     {
+         var starting_rect = new RectInt(0, 0, totalSize, totalSize);
+     
+         return new Dungeon
+         {
+             TunnelSize = tunnelWidth,
+             TotalSize = totalSize,
+             RoomMinRatio = roomMinRatio,
+             RoomMaxRatio = roomMaxRatio,
+             SplitMinRatio = splitMinRatio,
+             SplitMaxRatio = splitMaxRatio,
+             StartingRect = starting_rect,
+             Iterations = iterations,
+             Padding = padding
+         };
+     }
 
 	#endregion
 
