@@ -103,68 +103,34 @@ public class DungeonGenerator : MonoBehaviour
 
 	private static void DrawContainer(BinaryTree node)
 	{
-		// Container
-		Gizmos.color = Color.green;
+		DrawRectangle(Color.green, node.RootNode);
+	}
 
-		// top      
-		Gizmos.DrawLine(new Vector3(node.RootNode.x, 0, node.RootNode.y),
-			new Vector3Int(node.RootNode.xMax, 0, node.RootNode.y));
+	private static void DrawRectangle(Color color, RectInt rect)
+	{
+		Gizmos.color = color;
+
+		// top
+		Gizmos.DrawLine(new Vector3(rect.x, 0, rect.y), new Vector3(rect.xMax, 0, rect.y));
 
 		// right
-		Gizmos.DrawLine(new Vector3(node.RootNode.xMax, 0, node.RootNode.y),
-			new Vector3Int(node.RootNode.xMax, 0, node.RootNode.yMax));
+		Gizmos.DrawLine(new Vector3(rect.xMax, 0, rect.y), new Vector3(rect.xMax, 0, rect.yMax));
 
 		// bottom
-		Gizmos.DrawLine(new Vector3(node.RootNode.x, 0, node.RootNode.yMax),
-			new Vector3Int(node.RootNode.xMax, 0, node.RootNode.yMax));
+		Gizmos.DrawLine(new Vector3(rect.x, 0, rect.yMax), new Vector3(rect.xMax, 0, rect.yMax));
 
 		// left
-		Gizmos.DrawLine(new Vector3(node.RootNode.x, 0, node.RootNode.y),
-			new Vector3Int(node.RootNode.x, 0, node.RootNode.yMax));
+		Gizmos.DrawLine(new Vector3(rect.x, 0, rect.y), new Vector3(rect.x, 0, rect.yMax));
 	}
 
 	private static void DrawRoom(BinaryTree node)
 	{
-		// Room
-		Gizmos.color = Color.red;
-
-		// top      
-		Gizmos.DrawLine(new Vector3(node.DungeonRoom.x, 0, node.DungeonRoom.y),
-			new Vector3Int(node.DungeonRoom.xMax, 0, node.DungeonRoom.y));
-
-		// right
-		Gizmos.DrawLine(new Vector3(node.DungeonRoom.xMax, 0, node.DungeonRoom.y),
-			new Vector3Int(node.DungeonRoom.xMax, 0, node.DungeonRoom.yMax));
-
-		// bottom
-		Gizmos.DrawLine(new Vector3(node.DungeonRoom.x, 0, node.DungeonRoom.yMax),
-			new Vector3Int(node.DungeonRoom.xMax, 0, node.DungeonRoom.yMax));
-
-		// left
-		Gizmos.DrawLine(new Vector3(node.DungeonRoom.x, 0, node.DungeonRoom.y),
-			new Vector3Int(node.DungeonRoom.x, 0, node.DungeonRoom.yMax));
+		DrawRectangle(Color.red, node.DungeonRoom);
 	}
 
 	private static void DrawTunnel(BinaryTree node)
 	{
-		// Tunnel
-		Gizmos.color = Color.yellow;
-
-		// top      
-		Gizmos.DrawLine(new Vector3(node.Tunnel.x, 0, node.Tunnel.y),
-			new Vector3Int(node.Tunnel.xMax, 0, node.Tunnel.y));
-
-		// right
-		Gizmos.DrawLine(new Vector3(node.Tunnel.xMax, 0, node.Tunnel.y),
-			new Vector3Int(node.Tunnel.xMax, 0, node.Tunnel.yMax));
-
-		// bottom
-		Gizmos.DrawLine(new Vector3(node.Tunnel.x, 0, node.Tunnel.yMax),
-			new Vector3Int(node.Tunnel.xMax, 0, node.Tunnel.yMax));
-
-		// left
-		Gizmos.DrawLine(new Vector3(node.Tunnel.x, 0, node.Tunnel.y),
-			new Vector3Int(node.Tunnel.x, 0, node.Tunnel.yMax));
+		DrawRectangle(Color.yellow, node.Tunnel);
 	}
 
 	private void DebugDraw()
@@ -174,10 +140,10 @@ public class DungeonGenerator : MonoBehaviour
 			return;
 		}
 
-		DebugDrawTree(Dungeon.DungeonTree);
+		DrawTree(Dungeon.DungeonTree);
 	}
 
-	private void DebugDrawTree(BinaryTree node)
+	private void DrawTree(BinaryTree node)
 	{
 		while (true)
 		{
@@ -196,7 +162,7 @@ public class DungeonGenerator : MonoBehaviour
 			// children
 			if (node.LeftNode != null)
 			{
-				DebugDrawTree(node.LeftNode);
+				DrawTree(node.LeftNode);
 			}
 
 			if (node.RightNode != null)

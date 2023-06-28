@@ -172,7 +172,6 @@ public class BinaryTree
 
 		var vertical = c.width > c.height;
 
-		
 		if (vertical)
 		{
 			SplitDir = SplitDirection.Vertical;
